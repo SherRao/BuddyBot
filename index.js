@@ -86,7 +86,7 @@ function postCommand() {
     discord.api.applications(discord.user.id).guilds(config.server).commands.post(command);
 }
 
-function shuffleCommand(interaction) {
+async function shuffleCommand(interaction) {
     let args = interaction.data.options;
     let channelId = args[0].value;
 
@@ -95,29 +95,28 @@ function shuffleCommand(interaction) {
 
     let members = initialVoiceChannel.members;
     let channelCount = members.size / userPerChannel;
-    
+
     let voiceChannels = [];
-    for(var i = 1; i <= channelCount; i++) {
-        server.channels.create("Trivia Night Room #" + i, { type: "voice", reason: "Trivia Night" })
-            .then(channel => {
-                voiceChannels.
-                   
-            })
-
-            .catch(console.error);
-
+    for (var i = 1; i <= channelCount; i++) {
+        try {
+            const vc = await server.channels.create("Trivia Night Room #" + i, { type: "voice", reason: "Trivia Night" })
+            voiceChannels.push(vc)
+        } catch (err) {
+            console.log(err)
+        }
     }
 
     let counter = 0;
-    members.each( member => {
+    members.each(member => {
         let channel = voiceChannels[counter % channelCount];
-        member.voice.setChannel(channel)
-            .then(console.log("Moved"))
-            .catch(console.error);
-
-        counter++;
-
-    } );
+        try {
+            let channelSet = await member.voice.setChannel(channel)
+            console.log("whats up mother fucker?")
+            counter++;
+        } catch (err) {
+            console.log(err)
+        }
+    });
 
 }
 
