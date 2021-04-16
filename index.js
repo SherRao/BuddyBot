@@ -31,18 +31,19 @@ function disconnectBot() {
 function registerCommandEvent() {
     discord.ws.on("INTERACTION_CREATE", async interaction => {
         const command = interaction.data.name.toLowerCase();
-        if(command == "shuffle") {
+        if (command == "shuffle") {
             const member = getMember(interaction);
-            if(member.roles.cache.has(config.mod_role)) {
+            if (member.roles.cache.has(config.mod_role)) {
                 shuffleCommand(args);
 
-            } else {} //say bad message
+            } else { } //say bad message
 
         }
     });
 }
 
 function getMember(interaction) {
+    const guild = discord.guilds.cache.get(interaction.guild_id);
     const uid = interaction.member.user.id;
     const member = guild.members.cache.get(uid);
 
@@ -86,8 +87,8 @@ function shuffleCommand(interaction) {
     let members = voiceChannel.members;
     let channelCount = members.size / userPerChannel;
 
-    for(var i = 1; i <= channelCount; i++) {
-        interaction.guild.channels.create("Trivia Night Room #" + i, {reason: "Trivia Night"})
+    for (var i = 1; i <= channelCount; i++) {
+        interaction.guild.channels.create("Trivia Night Room #" + i, { reason: "Trivia Night" })
             .then(console.log)
             .catch(console.error);
 
