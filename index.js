@@ -5,23 +5,17 @@ const config = require('./config.json');
 const userPerChannel = 4;
 
 function main() {
-    discord.once('ready', () => {
-        setPresence();
-        postCommand();
-
-        console.log("Bot ready!");
-    });
-
-    discord.once("disconnect", () => {
-        console.log("Bot disconnected!");
-    });
+    const initListnener = initializeBot()
+    const disconnectListner = disconnectBot()
+    initListnener()
+    disconnectListner()
 
     discord.ws.on("INTERACTION_CREATE", async interaction => {
         const command = interaction.data.name.toLowerCase();
         const args = interaction.data.options; //
 
         if (command == "shuffle") {//&& interaction.member.roles.has(config.mod_role)) {
-            const data = getGuildAndMember(interaction)
+            const member = getMember(interaction)
             if (member.roles.cache.has(config.mod_role)) {
                 shuffleCommand(args);
 
@@ -33,14 +27,26 @@ function main() {
     discord.login(config.token);
 }
 
-function getGuildAndMember(interaction) {
-    const uid = interaction.member.user.id;
-    const guid = interaction.guild.id
+function initializeBot() {
+    return discord.once('ready', () => {
+        setPresence();
+        postCommand();
 
-    const guild = discord.guilds.cache.get(guid);
+        console.log("Bot ready!");
+    });
+}
+
+function disconnectBot() {
+    discord.once("disconnect", () => {
+        console.log("Bot disconnected!");
+    });
+}
+
+function getMember(interaction) {
+    const uid = interaction.member.user.id;
     const member = guild.members.cache.get(uid);
 
-    return { guild: guild, member: member }
+    return member
 }
 
 function setPresence() {
