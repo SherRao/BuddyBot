@@ -100,9 +100,8 @@ function shuffleCommand(interaction) {
     for(var i = 1; i <= channelCount; i++) {
         server.channels.create("Trivia Night Room #" + i, { type: "voice", reason: "Trivia Night" })
             .then(channel => {
-                voiceChannels.push(channel);
-                console.log("Created channel #" + i); 
-            
+                voiceChannels.
+                   
             })
 
             .catch(console.error);
@@ -110,17 +109,16 @@ function shuffleCommand(interaction) {
     }
 
     let counter = 0;
-    members.each(member => {
-        let channel = voiceChannels[i % channelCount];
-        console.log(channel.name)
-
-        console.log(member);
+    members.each( member => {
+        let channel = voiceChannels[counter % channelCount];
         member.voice.setChannel(channel)
             .then(console.log("Moved"))
             .catch(console.error);
 
         counter++;
+
     } );
+
 }
 
 main();
