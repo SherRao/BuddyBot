@@ -5,30 +5,15 @@ const config = require('./config.json');
 const userPerChannel = 4;
 
 function main() {
-    const initListnener = initializeBot()
-    const disconnectListner = disconnectBot()
-    initListnener()
-    disconnectListner()
-
-    discord.ws.on("INTERACTION_CREATE", async interaction => {
-        const command = interaction.data.name.toLowerCase();
-        const args = interaction.data.options; //
-
-        if (command == "shuffle") {//&& interaction.member.roles.has(config.mod_role)) {
-            const member = getMember(interaction)
-            if (member.roles.cache.has(config.mod_role)) {
-                shuffleCommand(args);
-
-            } else { } //say bad message
-
-        }
-    });
+    initializeBot();
+    disconnectBot();
+    registerCommandEvent();
 
     discord.login(config.token);
 }
 
 function initializeBot() {
-    return discord.once('ready', () => {
+    discord.once('ready', () => {
         setPresence();
         postCommand();
 
@@ -39,6 +24,21 @@ function initializeBot() {
 function disconnectBot() {
     discord.once("disconnect", () => {
         console.log("Bot disconnected!");
+
+    });
+}
+
+function registerCommandEvent() {
+    discord.ws.on("INTERACTION_CREATE", async interaction => {
+        const command = interaction.data.name.toLowerCase();
+        if(command == "shuffle") {
+            const member = getMember(interaction);
+            if(member.roles.cache.has(config.mod_role)) {
+                shuffleCommand(args);
+
+            } else {} //say bad message
+
+        }
     });
 }
 
@@ -59,7 +59,6 @@ function setPresence() {
 
         }, type: "STREAMING"
     });
-
 }
 
 function postCommand() {
@@ -82,19 +81,17 @@ function postCommand() {
 }
 
 function shuffleCommand(interaction) {
-    let voiceChannel = discord.channels.cache.get(interaction.data.options.value);
+    let channelId = args[0].value;
+    let voiceChannel = discord.channels.cache.get(channelId);
     let members = voiceChannel.members;
     let channelCount = members.size / userPerChannel;
 
-    for (var i = 0; i < channelCount; i++) {
-        interaction.guild.channels.create("Trivia Night Room #" + (i + 1), { reason: "Trivia Night" })
-            .then(console.log("hey"))
+    for(var i = 1; i <= channelCount; i++) {
+        interaction.guild.channels.create("Trivia Night Room #" + i, {reason: "Trivia Night"})
+            .then(console.log)
             .catch(console.error);
 
-        console.log("this works");
-
     }
-
 }
 
 main();
