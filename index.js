@@ -50,6 +50,10 @@ function getMember(interaction) {
     return member
 }
 
+function getGuild(interaction) {
+    return guild = discord.guilds.cache.get(interaction.guild_id);
+}
+
 function setPresence() {
     discord.user.setPresence({
         status: "dnd",
