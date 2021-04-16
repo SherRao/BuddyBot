@@ -21,7 +21,7 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
 public class Bot {
     
-    public static final String TOKEN = "ODE5NzEyNzY3MDAyMjc5OTg3.YEqnAQ.BPdLbJg5OIokj-wnNLFnEvTvAlc";
+    public static final String TOKEN = null;
     public static final int PER_CHANNEL = 2;
     
     private JDA api;
