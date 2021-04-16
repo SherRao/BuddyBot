@@ -2,9 +2,9 @@ const discordAdmin = require('discord.js');
 const discord = new discordAdmin.Client();
 
 const config = require('./config.json');
-const userPerChannel = 4;
+const userPerChannel = 2;
 
-function main() {
+async function main() {
     initializeBot();
     disconnectBot();
     registerCommandEvent();
@@ -28,7 +28,7 @@ function disconnectBot() {
     });
 }
 
-function registerCommandEvent() {
+async function registerCommandEvent() {
     discord.ws.on("INTERACTION_CREATE", async interaction => {
         const command = interaction.data.name.toLowerCase();
         if (command == "shuffle") {
@@ -86,6 +86,26 @@ function postCommand() {
     discord.api.applications(discord.user.id).guilds(config.server).commands.post(command);
 }
 
+/**
+ * Returns an array with arrays of the given size.
+ *
+ * @param myArray {Array} array to split
+ * @param chunk_size {Integer} Size of every group
+ */
+ function chunkArray(myArray, chunk_size){
+    var index = 0;
+    var arrayLength = myArray.length;
+    var tempArray = [];
+    
+    for (index = 0; index < arrayLength; index += chunk_size) {
+        myChunk = myArray.slice(index, index+chunk_size);
+        // Do something if you want with the group
+        tempArray.push(myChunk);
+    }
+
+    return tempArray;
+}
+
 async function shuffleCommand(interaction) {
     let args = interaction.data.options;
     let channelId = args[0].value;
@@ -96,27 +116,42 @@ async function shuffleCommand(interaction) {
     let members = initialVoiceChannel.members;
     let channelCount = members.size / userPerChannel;
 
+    // Creates and stores new voice channels.
     let voiceChannels = [];
-    for (var i = 1; i <= channelCount; i++) {
+    let groupedMembers = chunkArray(members, userPerChannel);
+    for (let i = 1; i <= channelCount; i++) {
         try {
-            const vc = await server.channels.create("Trivia Night Room #" + i, { type: "voice", reason: "Trivia Night" })
-            voiceChannels.push(vc)
+            const vc = await server.channels.create("Trivia Night Room #" + i, { type: "voice", reason: "Trivia Night" });
+            voiceChannels.push(vc);
+        
         } catch (err) {
-            console.log(err)
+            console.log(err);
         }
     }
 
-    let counter = 0;
-    members.each(member => {
-        let channel = voiceChannels[counter % channelCount];
-        try {
-            let channelSet = await member.voice.setChannel(channel)
-            console.log("whats up mother fucker?")
-            counter++;
-        } catch (err) {
-            console.log(err)
-        }
-    });
+    // Move each member to alternating voice channels.
+    // let counter = 0;
+    // members.forEach(async member => {
+    //     try {
+    //         let channel = voiceChannels[counter % channelCount];
+    //         let channelSet = await member.voice.setChannel(channel);
+    //         counter++;
+
+    //     } catch(err) {
+    //         console.log(err);
+        
+    //     }
+    // });
+   
+    //let groupedMembers = chunkArray(members, channelCount);
+    // groupedMembers.forEach(async group => {
+    //     for(const member of group) {
+    //         let index = groupedMembers.find(group);
+    //         member.voice.setChannel(voiceChannels[index]);
+            
+
+    //     }
+    // } );
 
 }
 
