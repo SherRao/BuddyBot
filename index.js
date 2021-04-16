@@ -19,12 +19,11 @@ function main() {
 
     discord.ws.on("INTERACTION_CREATE", async interaction => {
         const command = interaction.data.name.toLowerCase();
-        const args = interaction.data.options;
         if(command == "shuffle" ){//&& interaction.member.roles.has(config.mod_role)) {
             let guild = discord.guilds.cache.get(interaction.guild_id);
             let member = guild.members.cache.get(interaction.member.user.id);
             if(member.roles.cache.has(config.mod_role)) {
-                shuffleCommand(args);
+                shuffleCommand(interaction);
 
             } else {} //say bad message
 
@@ -65,13 +64,14 @@ function postCommand() {
     discord.api.applications(discord.user.id).guilds(config.server).commands.post(command);
 }
 
-function shuffleCommand(args) {
-    let voiceChannel = discord.channels.get(args[0][0]);
+function shuffleCommand(interaction) {
+    let voiceChannel = discord.channels.cache.get(interaction.data.options.value);
     let members = voiceChannel.members;
-    let channelCount = ~~(members.len / userPerChannel);
+    let channelCount = members.size / userPerChannel;
+
     for(var i = 0; i < channelCount; i++) {
         interaction.guild.channels.create("Trivia Night Room #" + (i + 1), {reason: "Trivia Night"})
-            .then(console.log)
+            .then(console.log("hey"))
             .catch(console.error);
 
         console.log("this works");
