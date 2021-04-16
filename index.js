@@ -51,7 +51,7 @@ function getMember(interaction) {
 }
 
 function getGuild(interaction) {
-    return guild = discord.guilds.cache.get(interaction.guild_id);
+    return discord.guilds.cache.get(interaction.guild_id);
 }
 
 function setPresence() {
