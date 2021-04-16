@@ -34,7 +34,7 @@ function registerCommandEvent() {
         if (command == "shuffle") {
             const member = getMember(interaction);
             if (member.roles.cache.has(config.mod_role)) {
-                shuffleCommand(args);
+                shuffleCommand(interaction);
 
             } else { } //say bad message
 
@@ -47,11 +47,12 @@ function getMember(interaction) {
     const uid = interaction.member.user.id;
     const member = guild.members.cache.get(uid);
 
-    return member
+    return member;
 }
 
 function getGuild(interaction) {
     return discord.guilds.cache.get(interaction.guild_id);
+
 }
 
 function setPresence() {
@@ -86,17 +87,40 @@ function postCommand() {
 }
 
 function shuffleCommand(interaction) {
+    let args = interaction.data.options;
     let channelId = args[0].value;
-    let voiceChannel = discord.channels.cache.get(channelId);
-    let members = voiceChannel.members;
-    let channelCount = members.size / userPerChannel;
 
-    for (var i = 1; i <= channelCount; i++) {
-        interaction.guild.channels.create("Trivia Night Room #" + i, { reason: "Trivia Night" })
-            .then(console.log)
+    let server = getGuild(interaction);
+    let initialVoiceChannel = discord.channels.cache.get(channelId);
+
+    let members = initialVoiceChannel.members;
+    let channelCount = members.size / userPerChannel;
+    
+    let voiceChannels = [];
+    for(var i = 1; i <= channelCount; i++) {
+        server.channels.create("Trivia Night Room #" + i, { type: "voice", reason: "Trivia Night" })
+            .then(channel => {
+                voiceChannels.push(channel);
+                console.log("Created channel #" + i); 
+            
+            })
+
             .catch(console.error);
 
     }
+
+    let counter = 0;
+    members.each(member => {
+        let channel = voiceChannels[i % channelCount];
+        console.log(channel.name)
+
+        console.log(member);
+        member.voice.setChannel(channel)
+            .then(console.log("Moved"))
+            .catch(console.error);
+
+        counter++;
+    } );
 }
 
 main();
