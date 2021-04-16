@@ -19,12 +19,9 @@ function main() {
     discord.ws.on("INTERACTION_CREATE", async interaction => {
         const command = interaction.data.name.toLowerCase();
         const args = interaction.data.options; //
-        const uid = interaction.member.user.id;
-        const guid = interaction.guild.id
 
         if (command == "shuffle") {//&& interaction.member.roles.has(config.mod_role)) {
-            let guild = discord.guilds.cache.get(guid);
-            let member = guild.members.cache.get(uid);
+            const data = getGuildAndMember(interaction)
             if (member.roles.cache.has(config.mod_role)) {
                 shuffleCommand(args);
 
@@ -34,6 +31,16 @@ function main() {
     });
 
     discord.login(config.token);
+}
+
+function getGuildAndMember(interaction) {
+    const uid = interaction.member.user.id;
+    const guid = interaction.guild.id
+
+    const guild = discord.guilds.cache.get(guid);
+    const member = guild.members.cache.get(uid);
+
+    return { guild: guild, member: member }
 }
 
 function setPresence() {
