@@ -2,7 +2,6 @@ const discordAdmin = require('discord.js');
 const discord = new discordAdmin.Client();
 
 const config = require('./config.json');
-const userPerChannel = 2;
 
 async function main() {
     initializeBot();
@@ -113,13 +112,13 @@ async function shuffleCommand(interaction) {
     let server = getGuild(interaction);
     let initialVoiceChannel = discord.channels.cache.get(channelId);
 
+    let userPerChannel = 2;
     let members = initialVoiceChannel.members;
     let channelCount = members.size / userPerChannel;
 
     // Creates and stores new voice channels.
     let voiceChannels = [];
-    let groupedMembers = chunkArray(members, userPerChannel);
-    for (let i = 1; i <= channelCount; i++) {
+    for(let i = 1; i <= channelCount; i++) {
         try {
             const vc = await server.channels.create("Trivia Night Room #" + i, { type: "voice", reason: "Trivia Night" });
             voiceChannels.push(vc);
@@ -127,6 +126,14 @@ async function shuffleCommand(interaction) {
         } catch (err) {
             console.log(err);
         }
+    }
+
+    for(let i = 0; i < members.size; i++) {
+        console.log(members.get(0));
+        const member = members[i];
+        const channel = voiceChannels[0];
+        member.voice.setChannel(channel);
+
     }
 
     // Move each member to alternating voice channels.
@@ -142,16 +149,6 @@ async function shuffleCommand(interaction) {
         
     //     }
     // });
-   
-    //let groupedMembers = chunkArray(members, channelCount);
-    // groupedMembers.forEach(async group => {
-    //     for(const member of group) {
-    //         let index = groupedMembers.find(group);
-    //         member.voice.setChannel(voiceChannels[index]);
-            
-
-    //     }
-    // } );
 
 }
 
