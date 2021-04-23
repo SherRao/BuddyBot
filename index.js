@@ -1,60 +1,38 @@
+const fs = require('fs');
+const config = require('./config.json');
+
 const discordAdmin = require('discord.js');
 const discord = new discordAdmin.Client();
 
-const config = require('./config.json');
+let commands = []; 
 
+/**
+ * 
+ * Main function that handles all calls to other parts of the bot.
+ * 
+ * @author Nausher Rao
+ * 
+ */
 async function main() {
-    initializeBot();
-    disconnectBot();
-    registerCommandEvent();
+    discord.once('ready', () => {
+        setPresence();
+        initCommands();
+        handleCommands();
+
+        console.log("Bot loaded!");
+    });
 
     discord.login(config.token);
 }
 
-function initializeBot() {
-    discord.once('ready', () => {
-        setPresence();
-        postCommand();
-
-        console.log("Bot ready!");
-    });
-}
-
-function disconnectBot() {
-    discord.once("disconnect", () => {
-        console.log("Bot disconnected!");
-
-    });
-}
-
-async function registerCommandEvent() {
-    discord.ws.on("INTERACTION_CREATE", async interaction => {
-        const command = interaction.data.name.toLowerCase();
-        if (command == "shuffle") {
-            const member = getMember(interaction);
-            if (member.roles.cache.has(config.mod_role)) {
-                shuffleCommand(interaction);
-
-            } else { } //say bad message
-
-        }
-    });
-}
-
-function getMember(interaction) {
-    const guild = discord.guilds.cache.get(interaction.guild_id);
-    const uid = interaction.member.user.id;
-    const member = guild.members.cache.get(uid);
-
-    return member;
-}
-
-function getGuild(interaction) {
-    return discord.guilds.cache.get(interaction.guild_id);
-
-}
-
-function setPresence() {
+/**
+ * 
+ * Sets the initial Discord bot user presence text.
+ * 
+ * @author Nausher Rao
+ *
+ */
+ function setPresence() {
     discord.user.setPresence({
         status: "dnd",
         activity: {
@@ -66,90 +44,52 @@ function setPresence() {
     });
 }
 
-function postCommand() {
-    let command = {
-        "data": {
-            "name": "shuffle",
-            "description": "Used to shuffle the people in a voice channel to a bunch of different voice channels.",
-            "options": [
-                {
-                    "name": "channel",
-                    "description": "The channel that contains all the peoples.",
-                    "type": 7,
-                    "required": true
-                },
-            ]
-        }
-    };
+/**
+ * 
+ * Load all command files from the "commands" folder, and POST them to the Discord 
+ * command endpoint for the specific server.
+ * 
+ * @author Nausher Rao
+ * 
+ */
+ function initCommands() {
+    console.log("Loading commands!");
+    for(const file of fs.readdirSync('./commands').filter(file => file.endsWith('.js') && file != 'template.js') ) {
+        const command = require(`./commands/${file}`);
 
-    discord.api.applications(discord.user.id).guilds(config.server).commands.post(command);
+        discord.api.applications(discord.user.id).guilds(config.server).commands.post(command);
+        commands.push(command);
+        
+        console.log(`Loaded command from file: ./commands/${file}`);
+    }
 }
 
 /**
- * Returns an array with arrays of the given size.
- *
- * @param myArray {Array} array to split
- * @param chunk_size {Integer} Size of every group
+ * 
+ * Code registered directly with the web socket to execute code 
+ * when a slash command ("interaction") is recorded. 
+ * 
+ * @author Nausher Rao
+ * 
  */
- function chunkArray(myArray, chunk_size){
-    var index = 0;
-    var arrayLength = myArray.length;
-    var tempArray = [];
+ function handleCommands() {
+    console.log("Registering command interaction create listener!");
+    discord.ws.on('INTERACTION_CREATE', async interaction => {
+        const input = interaction.data.name.toLowerCase();
+        
+        for(const command of commands) {
+            if(command.data.name == input) {
+                let permissionsRoles = command.permission_roles;
+                let permissions = command.permission;
+                console.log("Processing command: " + command);
+                command.execute(discord, interaction);
+                break;
+
+            } else
+                continue;
     
-    for (index = 0; index < arrayLength; index += chunk_size) {
-        myChunk = myArray.slice(index, index+chunk_size);
-        // Do something if you want with the group
-        tempArray.push(myChunk);
-    }
-
-    return tempArray;
-}
-
-async function shuffleCommand(interaction) {
-    let args = interaction.data.options;
-    let channelId = args[0].value;
-
-    let server = getGuild(interaction);
-    let initialVoiceChannel = discord.channels.cache.get(channelId);
-
-    let userPerChannel = 2;
-    let members = initialVoiceChannel.members;
-    let channelCount = members.size / userPerChannel;
-
-    // Creates and stores new voice channels.
-    let voiceChannels = [];
-    for(let i = 1; i <= channelCount; i++) {
-        try {
-            const vc = await server.channels.create("Trivia Night Room #" + i, { type: "voice", reason: "Trivia Night" });
-            voiceChannels.push(vc);
-        
-        } catch (err) {
-            console.log(err);
         }
-    }
-
-    for(let i = 0; i < members.size; i++) {
-        console.log(members.get(0));
-        const member = members[i];
-        const channel = voiceChannels[0];
-        member.voice.setChannel(channel);
-
-    }
-
-    // Move each member to alternating voice channels.
-    // let counter = 0;
-    // members.forEach(async member => {
-    //     try {
-    //         let channel = voiceChannels[counter % channelCount];
-    //         let channelSet = await member.voice.setChannel(channel);
-    //         counter++;
-
-    //     } catch(err) {
-    //         console.log(err);
-        
-    //     }
-    // });
-
+    });
 }
 
 main();
