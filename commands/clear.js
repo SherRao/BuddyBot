@@ -1,3 +1,5 @@
+const config = require('./../config.json');
+
 module.exports = {
 
     // Data object that includes all the JSON to post to the Discord command endpoint.
@@ -22,12 +24,19 @@ module.exports = {
      * 
      */
     execute: async (discord, interaction) => {
-        let channels = require('/data.json').channels;
-        for(const uid of channels) {
-            console.log(`Deleted channel: ${uid}`);
-            discord.channels.cache.get(uid).delete();
+        const server = discord.guilds.cache.get(interaction.guild_id);
+        const category = server.channels.cache.get(config.category);
 
-        }
+        category.children.forEach( channel => {
+            console.log(`Deleted channel: ${channel.name}`);
+            channel.delete();
+
+        });
+
+        discord.api.interactions(interaction.id, interaction.token).callback.post({
+            data: { type: 4, data: {content: `Cleared all channels that I made!`} }
+
+        });
     }
 
 }

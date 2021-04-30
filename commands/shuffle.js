@@ -1,3 +1,8 @@
+const config = require('./../config.json');
+
+let voiceChannels = [];
+let numbers = [];
+
 module.exports = {
 
     "data": {
@@ -46,12 +51,16 @@ module.exports = {
         let channelCount = Math.ceil(members.size / userPerChannel);
     
         // Creates and stores new voice channels.
-        let voiceChannels = [];
         for(let i = 1; i <= channelCount; i++) {
             try {
-                const vc = await server.channels.create("Test #" + i, { type: "voice", reason: "Trivia Night" });
+                let r = Math.floor(Math.random() * 98) + 1;
+                console.log(r);
+
+                const vc = await server.channels.create("Trivia Night #" + r, { type: "voice", reason: "RUHacks Trivia Night" });
+                vc.setParent(config.category);
                 voiceChannels.push(vc);
-            
+                numbers.push(r);
+
             } catch(err) {
                 console.log(err);
             }
@@ -65,16 +74,9 @@ module.exports = {
             
         } );
 
-        // Writes the created channels IDs to 'data.json'.
-        let dataFile = require('/data.json');
-        let data = {}
-        data.channels = voiceChannels;
+        discord.api.interactions(interaction.id, interaction.token).callback.post({
+            data: { type: 4, data: {content: `Moved ${members.size} people!`} }
 
-        fs.writeFile("data.json", JSON.stringify(data), function(err) {
-            if(err) throw err;
-            console.log("Complete");
-
-        } );
-    }
-
+        });
+    },
 }
